@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Area</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin-container {
+      background: white;
+      padding: 3rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
+    }
+
+    .admin-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 1rem;
+    }
+
+    .admin-header h1 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+
+    .admin-welcome {
+      color: #28a745;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .admin-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .feature-box {
+      background: #f8f9fa;
+      padding: 1.5rem;
+      border-left: 4px solid #667eea;
+      border-radius: 5px;
+    }
+
+    .feature-box h3 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-box p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .logout-section {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid #ddd;
+    }
+
+    /* Checkbox Styling */
+    .form-group label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .form-group input[type="checkbox"] {
+      margin-right: 0.5rem;
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="index.html">RP World</a>
+      <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">Über uns</a>
+        <a href="index.html#contact">Kontakt</a>
+      </nav>
+      <span class="admin-status" style="color: #28a745; font-weight: bold;">✓ <span id="currentUserDisplay">Admin</span></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+      <div class="container">
+        <h1 class="title">Admin Area</h1>
+        <p class="subtitle">Willkommen in deinem privaten Admin-Bereich</p>
+      </div>
+    </section>
+
+    <section class="container">
+      <div class="admin-container">
+        <div class="admin-header">
+          <h1>🔐 Admin Bereich</h1>
+          <p class="admin-welcome">Hallo, <span id="welcomeUsername">Admin</span>! Du bist erfolgreich angemeldet.</p>
+        </div>
+
+        <div class="admin-features">
+          <div class="feature-box">
+            <h3>🔑 Passwort ändern</h3>
+            <p>Ändere dein Admin-Passwort für erhöhte Sicherheit.</p>
+            <button id="changePasswordBtn" class="action-btn">Passwort ändern</button>
+          </div>
+          
+          <div class="feature-box" id="userManagementBox" style="display: none;">
+            <h3>👥 Benutzer verwalten</h3>
+            <p>Verwalte Admin-Konten und Berechtigungen (nur für Administratoren).</p>
+            <button id="manageUsersBtn" class="action-btn">Benutzer verwalten</button>
+          </div>
+
+          <div class="feature-box">
+            <h3>📊 Dashboard</h3>
+            <p>Übersicht über alle wichtigen Metriken und Statistiken deiner Website.</p>
+            <button class="action-btn" disabled style="cursor: not-allowed; opacity: 0.6;">Kommt bald</button>
+          </div>
+          <div class="feature-box">
+            <h3>📝 Inhalte verwalten</h3>
+            <p>Bearbeite und verwalte alle Seiteninhalte und Artikel.</p>
+            <button class="action-btn" disabled style="cursor: not-allowed; opacity: 0.6;">Kommt bald</button>
+          </div>
+          <div class="feature-box">
+            <h3>📧 Nachrichten</h3>
+            <p>Lese und beantworte Nachrichten von Besuchern.</p>
+            <button class="action-btn" disabled style="cursor: not-allowed; opacity: 0.6;">Kommt bald</button>
+          </div>
+          <div class="feature-box">
+            <h3>⚙️ Einstellungen</h3>
+            <p>Konfiguriere die Systemeinstellungen und Sicherheitsoptionen.</p>
+            <button class="action-btn" disabled style="cursor: not-allowed; opacity: 0.6;">Kommt bald</button>
+          </div>
+        </div>
+
+        <div class="logout-section">
+          <a href="index.html" class="action-btn" style="display: inline-block; text-decoration: none; text-align: center; margin-right: 10px;">← Zurück zur Hauptseite</a>
+          <button id="logoutBtn" class="logout-btn">Abmelden</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Passwort-Ändern Modal -->
+    <div id="changePasswordModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closePasswordModal">&times;</span>
+        <h2>Passwort ändern</h2>
+        <form id="changePasswordForm">
+          <div class="form-group">
+            <label for="currentPassword">Aktuelles Passwort:</label>
+            <input type="password" id="currentPassword" name="currentPassword" required>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">Neues Passwort:</label>
+            <input type="password" id="newPassword" name="newPassword" required>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Passwort wiederholen:</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+          </div>
+          <button type="submit" class="login-submit">Passwort ändern</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Benutzer-Verwaltungs Modal -->
+    <div id="userManagementModal" class="modal">
+      <div class="modal-content modal-large">
+        <span class="close" id="closeUserManagementModal">&times;</span>
+        <h2>Benutzer verwalten</h2>
+        
+        <div class="user-management-section">
+          <h3>Neuen Admin hinzufügen</h3>
+          <form id="addUserForm">
+            <div class="form-group">
+              <label for="newUsername">Benutzername:</label>
+              <input type="text" id="newUsername" name="newUsername" required>
+            </div>
+            <div class="form-group">
+              <label for="newUserPassword">Passwort:</label>
+              <input type="password" id="newUserPassword" name="newUserPassword" required>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="newUserSuperAdmin" name="newUserSuperAdmin">
+                Super Admin (kann weitere Admins erstellen)
+              </label>
+            </div>
+            <button type="submit" class="login-submit">Admin hinzufügen</button>
+          </form>
+        </div>
+
+        <div class="user-management-section">
+          <h3>Existierende Administratoren</h3>
+          <div id="usersList" class="users-list">
+            <!-- Wird dynamisch gefüllt -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">© 2026 Brand — Admin Panel</div>
+  </footer>
+
+  <script src="admin.js"></script>
+</body>
+</html>

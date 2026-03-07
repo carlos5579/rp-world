@@ -1,73 +1,101 @@
-// ==================== Admin Panel JavaScript ====================
+// ==================== Admin Panel JavaScript (mit Backend) ====================
 
-// Initialisiere das Benutzer-System bei erstem Laden
-function initializeUserSystem() {
-  const storedUsers = localStorage.getItem('adminUsers');
-  if (!storedUsers) {
-    const defaultUsers = {
-      'carlos': {
-        password: '1234',
-        canCreateUsers: true
-      }
-    };
-    localStorage.setItem('adminUsers', JSON.stringify(defaultUsers));
+const API_URL = 'https://rp-world-backend.onrender.com/api';
+
+// Benutzer-Info abrufen (über API)
+async function getUserInfo(username) {
+  try {
+    const response = await fetch(`${API_URL}/user/${username}`);
+    const data = await response.json();
+    if (data.success) {
+      return data.user;
+    }
+    return null;
+  } catch (error) {
+    console.error('Fehler beim Abrufen der Benutzerinfo:', error);
+    return null;
   }
 }
 
-// Benutzer-Info abrufen
-function getUserInfo(username) {
-  const users = JSON.parse(localStorage.getItem('adminUsers') || '{}');
-  return users[username];
+// Alle Benutzer abrufen (über API)
+async function getAllUsers(adminUsername) {
+  try {
+    const response = await fetch(`${API_URL}/users/${adminUsername}`);
+    const data = await response.json();
+    if (data.success) {
+      return data.users;
+    }
+    return [];
+  } catch (error) {
+    console.error('Fehler beim Abrufen der Benutzerliste:', error);
+    return [];
+  }
 }
 
-// Passwort ändern
-function changePassword(username, newPassword) {
-  const users = JSON.parse(localStorage.getItem('adminUsers') || '{}');
-  if (users[username]) {
-    users[username].password = newPassword;
-    localStorage.setItem('adminUsers', JSON.stringify(users));
-    return true;
+// Passwort ändern (über API)
+async function changePassword(username, oldPassword, newPassword) {
+  try {
+    const response = await fetch(`${API_URL}/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, oldPassword, newPassword })
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('Fehler beim Ändern des Passworts:', error);
+    return false;
   }
-  return false;
 }
 
-// Neuen Benutzer hinzufügen
-function addUser(username, password, isSuperAdmin = false) {
-  const users = JSON.parse(localStorage.getItem('adminUsers') || '{}');
-  if (users[username]) {
-    return false; // Benutzer existiert bereits
+// Neuen Benutzer hinzufügen (über API)
+async function addUser(adminUsername, newUsername, newPassword, canCreateUsers) {
+  try {
+    const response = await fetch(`${API_URL}/create-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        adminUsername,
+        newUsername,
+        newPassword,
+        canCreateUsers
+      })
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('Fehler beim Erstellen des Benutzers:', error);
+    return false;
   }
-  users[username] = {
-    password: password,
-    canCreateUsers: isSuperAdmin
-  };
-  localStorage.setItem('adminUsers', JSON.stringify(users));
-  return true;
 }
 
-// Benutzer löschen
-function deleteUser(username) {
-  const users = JSON.parse(localStorage.getItem('adminUsers') || '{}');
-  if (username === 'carlos') {
-    return false; // carlos kann nicht gelöscht werden
+// Benutzer löschen (über API)
+async function deleteUser(adminUsername, targetUsername) {
+  try {
+    const response = await fetch(`${API_URL}/delete-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        adminUsername,
+        targetUsername
+      })
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('Fehler beim Löschen des Benutzers:', error);
+    return false;
   }
-  if (users[username]) {
-    delete users[username];
-    localStorage.setItem('adminUsers', JSON.stringify(users));
-    return true;
-  }
-  return false;
-}
-
-// Alle Benutzer abrufen
-function getAllUsers() {
-  return JSON.parse(localStorage.getItem('adminUsers') || '{}');
 }
 
 // ==================== DOM Ready ====================
-document.addEventListener('DOMContentLoaded', function() {
-  initializeUserSystem();
-
+document.addEventListener('DOMContentLoaded', async function() {
   // Check if user is logged in
   const currentUser = localStorage.getItem('currentAdminUser');
   
@@ -77,8 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  // Get user info
-  let userInfo = getUserInfo(currentUser);
+  // Get user info from API
+  let userInfo = await getUserInfo(currentUser);
   if (!userInfo) {
     alert('Benutzer nicht gefunden!');
     window.location.href = 'Untitled-1.html';
@@ -121,18 +149,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   if (changePasswordForm) {
-    changePasswordForm.addEventListener('submit', function(e) {
+    changePasswordForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const currentPassword = document.getElementById('currentPassword').value;
       const newPassword = document.getElementById('newPassword').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
-
-      // Validate current password
-      if (userInfo.password !== currentPassword) {
-        alert('Aktuelles Passwort ist falsch!');
-        return;
-      }
 
       // Validate new password
       if (newPassword.length < 4) {
@@ -146,15 +168,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // Change password
-      if (changePassword(currentUser, newPassword)) {
-        // reload userInfo from storage so future checks use updated password
-        userInfo = getUserInfo(currentUser);
-        alert('Passwort erfolgreich geändert!');
+      // Change password via API
+      const success = await changePassword(currentUser, currentPassword, newPassword);
+      
+      if (success) {
+        alert('Passwort erfolgreich geändert! Die Änderung ist sofort auf allen Geräten verfügbar.');
         changePasswordModal.classList.remove('show');
         changePasswordForm.reset();
       } else {
-        alert('Fehler beim Ändern des Passworts!');
+        alert('Fehler beim Ändern des Passworts! Aktuelles Passwort ist möglicherweise falsch.');
+        changePasswordForm.reset();
       }
     });
   }
@@ -187,21 +210,29 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Render users list
-  function renderUsersList() {
+  async function renderUsersList() {
     const usersList = document.getElementById('usersList');
-    const users = getAllUsers();
+    const users = await getAllUsers(currentUser);
     
     usersList.innerHTML = '';
 
-    Object.entries(users).forEach(([username, userData]) => {
+    if (users.length === 0) {
+      usersList.innerHTML = '<p style="text-align: center; color: #999;">Keine Benutzer gefunden</p>';
+      return;
+    }
+
+    users.forEach((userData) => {
+      const username = userData.username;
       const userItem = document.createElement('div');
       userItem.className = 'user-item';
       
       const userInfo = document.createElement('div');
       userInfo.className = 'user-info';
+      const createdAt = new Date(userData.createdAt).toLocaleDateString('de-DE');
       userInfo.innerHTML = `
         <div class="user-name">${username}</div>
         <div class="user-badge">${userData.canCreateUsers ? '👑 Super Admin' : '👤 Admin'}</div>
+        <div style="font-size: 0.85rem; color: #999; margin-top: 0.3rem;">Erstellt: ${createdAt}</div>
       `;
       
       const userActions = document.createElement('div');
@@ -212,10 +243,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
         deleteBtn.textContent = 'Löschen';
-        deleteBtn.addEventListener('click', function() {
+        deleteBtn.addEventListener('click', async function() {
           if (confirm(`Möchtest du den Benutzer "${username}" wirklich löschen?`)) {
-            if (deleteUser(username)) {
-              alert('Benutzer erfolgreich gelöscht!');
+            const success = await deleteUser(currentUser, username);
+            if (success) {
+              alert('Benutzer erfolgreich gelöscht! Die Änderung ist sofort auf allen Geräten verfügbar.');
               renderUsersList();
             } else {
               alert('Fehler beim Löschen des Benutzers!');
@@ -245,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Handle add user form
   if (addUserForm) {
-    addUserForm.addEventListener('submit', function(e) {
+    addUserForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const newUsername = document.getElementById('newUsername').value;
@@ -264,21 +296,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // Check if username already exists
-      const users = getAllUsers();
-      if (users[newUsername]) {
-        alert(`Der Benutzername "${newUsername}" existiert bereits!`);
-        return;
-      }
-
-      // Add user
-      if (addUser(newUsername, newUserPassword, newUserSuperAdmin)) {
+      // Add user via API
+      const success = await addUser(currentUser, newUsername, newUserPassword, newUserSuperAdmin);
+      
+      if (success) {
         const statusText = newUserSuperAdmin ? 'Super Admin' : 'Admin';
-        alert(`${statusText} "${newUsername}" erfolgreich hinzugefügt!`);
+        alert(`${statusText} "${newUsername}" erfolgreich hinzugefügt! Der Benutzer ist sofort auf allen Geräten verfügbar.`);
         addUserForm.reset();
         renderUsersList();
       } else {
-        alert('Fehler beim Hinzufügen des Benutzers!');
+        alert('Fehler beim Hinzufügen des Benutzers! Der Benutzername könnte bereits existieren.');
       }
     });
   }

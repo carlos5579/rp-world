@@ -1,36 +1,41 @@
-// ==================== Admin Benutzer-System ====================
-// Initialisiere das Benutzer-System bei erstem Laden
-function initializeUserSystem() {
-  const storedUsers = localStorage.getItem('adminUsers');
-  if (!storedUsers) {
-    // Erstelle Standard-Benutzer (nur carlos mit voller Kontrolle)
-    const defaultUsers = {
-      'carlos': {
-        password: '1234',
-        isAdmin: true,
-        canCreateUsers: true
-      }
-    };
-    localStorage.setItem('adminUsers', JSON.stringify(defaultUsers));
+// ==================== Admin Benutzer-System (mit Backend) ====================
+const API_URL = 'https://rp-world-backend.onrender.com/api';
+
+// Benutzer authentifizieren (über API)
+async function authenticateUser(username, password) {
+  try {
+    const response = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('Authentifizierungsfehler:', error);
+    return false;
   }
 }
 
-// Benutzer authentifizieren
-function authenticateUser(username, password) {
-  const users = JSON.parse(localStorage.getItem('adminUsers') || '{}');
-  return users[username] && users[username].password === password;
-}
-
-// Benutzer-Info abrufen
-function getUserInfo(username) {
-  const users = JSON.parse(localStorage.getItem('adminUsers') || '{}');
-  return users[username];
+// Benutzer-Info abrufen (über API)
+async function getUserInfo(username) {
+  try {
+    const response = await fetch(`${API_URL}/user/${username}`);
+    const data = await response.json();
+    if (data.success) {
+      return data.user;
+    }
+    return null;
+  } catch (error) {
+    console.error('Fehler beim Abrufen der Benutzerinfo:', error);
+    return null;
+  }
 }
 
 // ==================== Admin Login System ====================
 document.addEventListener('DOMContentLoaded', function() {
-  initializeUserSystem();
-
   // Modal Elements
   const loginModal = document.getElementById('loginModal');
   const adminLoginBtn = document.getElementById('adminLoginBtn');
@@ -43,12 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Check if user is already logged in
   const currentUser = localStorage.getItem('currentAdminUser');
   if (currentUser) {
-    const userInfo = getUserInfo(currentUser);
-    if (userInfo) {
-      adminPanel.style.display = 'block';
-      adminStatus.textContent = '✓ ' + currentUser;
-      if (adminLoginBtn) adminLoginBtn.style.display = 'none';
-    }
+    adminPanel.style.display = 'block';
+    adminStatus.textContent = '✓ ' + currentUser;
+    if (adminLoginBtn) adminLoginBtn.style.display = 'none';
   }
 
   // Open login modal
@@ -77,14 +79,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Handle login form submission
   if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
 
-      // Check credentials
-      if (authenticateUser(username, password)) {
+      // Check credentials via API
+      const isValid = await authenticateUser(username, password);
+      
+      if (isValid) {
         // Login erfolgreich
         localStorage.setItem('currentAdminUser', username);
         loginModal.classList.remove('show');

@@ -341,6 +341,26 @@ app.post('/api/update-content', (req, res) => {
   });
 });
 
+// Endpoint to trigger build process
+app.post('/api/start-build', (req, res) => {
+  const { exec } = require('child_process');
+
+  exec('npm run build', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Build error: ${error.message}`);
+      return res.status(500).send('Build failed.');
+    }
+
+    if (stderr) {
+      console.error(`Build stderr: ${stderr}`);
+      return res.status(500).send('Build encountered issues.');
+    }
+
+    console.log(`Build stdout: ${stdout}`);
+    res.status(200).send('Build started successfully.');
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).send('Server is running');

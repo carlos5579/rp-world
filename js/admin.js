@@ -94,7 +94,7 @@ async function deleteUser(adminUsername, targetUsername) {
   }
 }
 
-// ==================== DOM Ready ====================
+// ==================== DOMw Ready ====================
 document.addEventListener('DOMContentLoaded', async function() {
   // Check if user is logged in
   const currentUser = localStorage.getItem('currentAdminUser');
@@ -391,7 +391,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   const saveContentButton = document.getElementById('save-content');
   const closeModalButton = document.getElementById('close-modal');
 
-  manageContentButton.addEventListener('click', () => {
+  manageContentButton.addEventListener('click', async () => {
+    // Check if the user is a super admin
+    const currentUser = localStorage.getItem('currentAdminUser');
+    const userInfo = await getUserInfo(currentUser);
+
+    if (!userInfo || !userInfo.canCreateUsers) {
+      alert('Nur Superadmins können diese Funktion nutzen.');
+      return;
+    }
+
     contentModal.style.display = 'block';
     // Load existing content (placeholder for now)
     contentEditor.value = 'Hier können Inhalte bearbeitet werden.';
@@ -423,5 +432,34 @@ document.addEventListener('DOMContentLoaded', async function() {
   closeModalButton.addEventListener('click', () => {
     contentModal.style.display = 'none';
   });
+
+  // Add build functionality to the same button
+  manageContentButton.addEventListener('dblclick', async () => {
+    // Check if the user is a super admin
+    const currentUser = localStorage.getItem('currentAdminUser');
+    const userInfo = await getUserInfo(currentUser);
+
+    if (!userInfo || !userInfo.canCreateUsers) {
+      alert('Nur Superadmins können diese Funktion nutzen.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/start-build`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        alert('Build erfolgreich gestartet!');
+      } else {
+        alert('Fehler beim Starten des Builds.');
+      }
+    } catch (error) {
+      console.error('Fehler beim Starten des Builds:', error);
+      alert('Ein Fehler ist aufgetreten.');
+    }
+  });
+
+  document.getElementById('admin-sidebar').appendChild(buildButton);
 });
 

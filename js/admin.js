@@ -96,22 +96,29 @@ async function deleteUser(adminUsername, targetUsername) {
 
 // ==================== DOMw Ready ====================
 document.addEventListener('DOMContentLoaded', async function() {
-  // Check if user is logged in
   const currentUser = localStorage.getItem('currentAdminUser');
-  
+
   if (!currentUser) {
-    alert('Du musst angemeldet sein um auf diese Seite zuzugreifen!');
-    window.location.href = 'Untitled-1.html';
+    alert('Du musst angemeldet sein, um auf das Admin-Dashboard zuzugreifen!');
+    window.location.href = 'index.html';
     return;
   }
 
-  // Get user info from API
-  let userInfo = await getUserInfo(currentUser);
+  const userInfo = await getUserInfo(currentUser);
   if (!userInfo) {
-    alert('Benutzer nicht gefunden!');
-    window.location.href = 'Untitled-1.html';
+    alert('Benutzer nicht gefunden oder keine Berechtigung!');
+    window.location.href = 'index.html';
     return;
   }
+
+  if (!userInfo.canCreateUsers) {
+    alert('Nur Superadmins können auf das Admin-Dashboard zugreifen!');
+    window.location.href = 'index.html';
+    return;
+  }
+
+  document.getElementById('adminPanel').style.display = 'block';
+  document.getElementById('adminStatus').textContent = `Angemeldet als: ${currentUser}`;
 
   // ==================== UI Updates ====================
   // Update welcome message and header

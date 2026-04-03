@@ -1,6 +1,6 @@
 // ==================== Admin Panel JavaScript (mit Backend) ====================
 
-const API_URL = 'https://rp-world-backend.onrender.com/api';
+const API_URL = window.location.hostname.includes('localhost') ? 'http://localhost:3000/api' : 'https://rp-world-backend.onrender.com/api';
 
 // Benutzer-Info abrufen (über API)
 async function getUserInfo(username) {
@@ -334,5 +334,94 @@ document.addEventListener('DOMContentLoaded', async function() {
       });
     });
   }
+
+  // ==================== Superadmin Sidebar Sections ====================
+  const addSectionButton = document.getElementById('add-section');
+  const sectionsList = document.getElementById('sections-list');
+
+  if (addSectionButton) {
+    addSectionButton.addEventListener('click', () => {
+      const sectionName = prompt('Enter the name of the new section:');
+      if (sectionName) {
+        const listItem = document.createElement('li');
+        listItem.textContent = sectionName;
+        listItem.contentEditable = true;
+        sectionsList.appendChild(listItem);
+
+        // Save section to the database (placeholder for now)
+        console.log(`Section "${sectionName}" added.`);
+      }
+    });
+  }
+
+  // Load sections from the database (placeholder for now)
+  console.log('Loading sections...');
+
+  // ==================== Add Main Menu Item ====================
+  const addMainMenuItemButton = document.getElementById('add-main-menu-item');
+
+  addMainMenuItemButton.addEventListener('click', async () => {
+    const menuItemName = prompt('Enter the name of the new menu item:');
+    if (menuItemName) {
+      try {
+        const response = await fetch(`${API_URL}/create-menu-item`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name: menuItemName })
+        });
+
+        if (response.ok) {
+          alert('Menu item added successfully!');
+        } else {
+          alert('Failed to add menu item.');
+        }
+      } catch (error) {
+        console.error('Error adding menu item:', error);
+        alert('An error occurred while adding the menu item.');
+      }
+    }
+  });
+
+  // ==================== Manage Content ====================
+  const manageContentButton = document.getElementById('manage-content');
+  const contentModal = document.getElementById('content-modal');
+  const contentEditor = document.getElementById('content-editor');
+  const saveContentButton = document.getElementById('save-content');
+  const closeModalButton = document.getElementById('close-modal');
+
+  manageContentButton.addEventListener('click', () => {
+    contentModal.style.display = 'block';
+    // Load existing content (placeholder for now)
+    contentEditor.value = 'Hier können Inhalte bearbeitet werden.';
+  });
+
+  saveContentButton.addEventListener('click', async () => {
+    const updatedContent = contentEditor.value;
+    try {
+      const response = await fetch(`${API_URL}/update-content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: updatedContent })
+      });
+
+      if (response.ok) {
+        alert('Inhalte erfolgreich gespeichert!');
+        contentModal.style.display = 'none';
+      } else {
+        alert('Fehler beim Speichern der Inhalte.');
+      }
+    } catch (error) {
+      console.error('Fehler beim Speichern der Inhalte:', error);
+      alert('Ein Fehler ist aufgetreten.');
+    }
+  });
+
+  closeModalButton.addEventListener('click', () => {
+    contentModal.style.display = 'none';
+  });
 });
 

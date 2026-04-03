@@ -6,11 +6,20 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "npm run build:js && npm run build:css && npm run copy:static",
+    "build:js": "terser js/*.js -o build/js/main.min.js",
+    "build:css": "cleancss css/*.css -o build/css/styles.min.css",
+    "copy:static": "cp -r *.html build/ && cp -r data build/"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "bcrypt": "^5.1.0",
+    "body-parser": "^1.20.2",
+    "clean-css-cli": "^5.6.3",
     "cors": "^2.8.5",
-    "body-parser": "^1.20.2"
+    "express": "^4.18.2",
+    "sanitize-html": "^2.17.2",
+    "sqlite3": "^5.1.6",
+    "terser": "^5.46.1"
   }
 }

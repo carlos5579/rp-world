@@ -3,6 +3,9 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
+const bcrypt = require('bcrypt');
+const sanitizeHtml = require('sanitize-html');
 
 const app = express();
 const PORT = 3000;
@@ -55,6 +58,51 @@ function saveUsers(users) {
     return false;
   }
 }
+
+// Initialize SQLite database
+const db = new sqlite3.Database('./data/users.db', (err) => {
+  if (err) {
+    console.error('Error opening database:', err.message);
+  } else {
+    console.log('Connected to the SQLite database.');
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE,
+      password TEXT,
+      role TEXT
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating users table:', err.message);
+      }
+    });
+  }
+});
+
+// Create menu_items table if it doesn't exist
+db.run(`CREATE TABLE IF NOT EXISTS menu_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE
+)`, (err) => {
+  if (err) {
+    console.error('Error creating menu_items table:', err.message);
+  }
+});
+
+// Function to hash passwords
+const hashPassword = async (password) => {
+  const saltRounds = 10;
+  return await bcrypt.hash(password, saltRounds);
+};
+
+// Middleware to sanitize user inputs
+app.use((req, res, next) => {
+  for (const key in req.body) {
+    if (req.body.hasOwnProperty(key)) {
+      req.body[key] = sanitizeHtml(req.body[key]);
+    }
+  }
+  next();
+});
 
 // ==================== API Endpoints ====================
 
@@ -245,9 +293,94 @@ app.post('/api/delete-user', (req, res) => {
   }
 });
 
+// Create a new main menu item
+app.post('/api/create-menu-item', (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).send('Menu item name is required.');
+  }
+
+  db.run(
+    `INSERT INTO menu_items (name) VALUES (?)`,
+    [name],
+    (err) => {
+      if (err) {
+        console.error('Error creating menu item:', err.message);
+        return res.status(500).send('Failed to create menu item.');
+      }
+      res.status(201).send('Menu item created successfully.');
+    }
+  );
+});
+
+// Get all menu items
+app.get('/api/menu-items', (req, res) => {
+  db.all(`SELECT * FROM menu_items`, [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching menu items:', err.message);
+      return res.status(500).send('Failed to fetch menu items.');
+    }
+    res.json(rows);
+  });
+});
+
+// Update content endpoint
+app.post('/api/update-content', (req, res) => {
+  const { content } = req.body;
+  if (!content) {
+    return res.status(400).send('Content is required.');
+  }
+
+  // Save content to a file (or database in a real-world scenario)
+  fs.writeFile('./data/content.txt', content, (err) => {
+    if (err) {
+      console.error('Error saving content:', err.message);
+      return res.status(500).send('Failed to save content.');
+    }
+    res.status(200).send('Content updated successfully.');
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).send('Server is running');
+});
+
 // Server starten
 initializeDatabase();
 app.listen(PORT, () => {
   console.log(`RP World Server läuft auf http://localhost:${PORT}`);
   console.log(`Standardbenutzer: carlos, Passwort: 1234`);
+});
+
+// Example route to add a new user
+app.post('/register', async (req, res) => {
+  const { username, password, role } = req.body;
+
+  if (!username || !password || !role) {
+    return res.status(400).send('All fields are required.');
+  }
+
+  if (username.length < 3 || password.length < 6) {
+    return res.status(400).send('Invalid input: Username must be at least 3 characters and password at least 6 characters.');
+  }
+
+  try {
+    const hashedPassword = await hashPassword(password);
+    db.run(
+      `INSERT INTO users (username, password, role) VALUES (?, ?, ?)`,
+      [username, hashedPassword, role],
+      (err) => {
+        if (err) {
+          console.error('Error inserting user:', err.message);
+          res.status(500).send('Error registering user.');
+        } else {
+          res.status(201).send('User registered successfully.');
+        }
+      }
+    );
+  } catch (error) {
+    console.error('Error hashing password:', error.message);
+    res.status(500).send('Error registering user.');
+  }
 });

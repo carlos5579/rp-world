@@ -1,0 +1,94 @@
+
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Modern Static Site</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <p class="logo">RP World</p>
+      <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+      <nav class="nav">
+        <a href="#">Home</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>   
+        <button id="adminLoginBtn" class="admin-btn">Admin Login</button>
+      </nav>
+      <span id="adminStatus" class="admin-status"></span>
+    </div>
+  </header>
+
+  <!-- Admin Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeLoginModal">&times;</span>
+      <h2>Admin Login</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Benutzername:</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Passwort:</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="login-submit">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1 class="title">RP World Website</h1>
+        <p class="subtitle">Alle News, Updates und Informationen auf einen Blick.</p>
+        <a class="cta" href="#about">Get started</a>
+      </div>
+    </section>
+
+    <section id="about" class="features container">
+      <div class="card fade-in">
+        <h3>Fast</h3>
+        <p>Optimized for speed and simplicity.</p>
+        <button class="action-btn" disabled style="cursor: not-allowed; opacity: 0.6;">Mehr erfahren</button>
+      </div>
+      <div class="card fade-in">
+        <h3>Responsive</h3>
+        <p>Looks great on phones, tablets, and desktops.</p>
+        <button class="action-btn" disabled style="cursor: not-allowed; opacity: 0.6;">Mehr erfahren</button>
+      </div>
+      <div class="card fade-in">
+        <h3>Customizable</h3>
+        <p>Easily modify styles and content.</p>
+        <button class="action-btn" disabled style="cursor: not-allowed; opacity: 0.6;">Mehr erfahren</button>
+      </div>
+    </section>
+
+    <section id="contact" class="container contact">
+      <h2>Contact</h2>
+      <p>Reach out at <a href="mailto:hello@example.com">hello@example.com</a></p>
+    </section>
+
+    <!-- Admin Panel (versteckt bis angemeldet) -->
+    <section id="adminPanel" class="admin-panel container" style="display: none;">
+      <h2>Admin Bereich</h2>
+      <p>Willkommen im privaten Admin-Bereich!</p>
+      <div class="admin-content">
+        <p>Hier könnten Admin-Funktionen implementiert werden.</p>
+        <a href="admin.html" class="action-btn" style="display: inline-block; text-decoration: none; text-align: center;">Admin Panel öffnen</a>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">© 2026 Brand — Built with care</div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

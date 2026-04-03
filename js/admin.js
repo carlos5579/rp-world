@@ -398,18 +398,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   const saveContentButton = document.getElementById('save-content');
   const closeModalButton = document.getElementById('close-modal');
 
-  manageContentButton.addEventListener('click', async () => {
-    // Check if the user is a super admin
-    const currentUser = localStorage.getItem('currentAdminUser');
-    const userInfo = await getUserInfo(currentUser);
-
-    if (!userInfo || !userInfo.canCreateUsers) {
-      alert('Nur Superadmins können diese Funktion nutzen.');
-      return;
-    }
-
+  manageContentButton.addEventListener('click', () => {
     contentModal.style.display = 'block';
-    // Load existing content (placeholder for now)
     contentEditor.value = 'Hier können Inhalte bearbeitet werden.';
   });
 

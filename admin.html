@@ -7,24 +7,34 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div id="admin-sidebar">
-        <h2>Superadmin Panel</h2>
-        <button id="add-section">Add Section</button>
-        <button id="add-main-menu-item">Add Main Menu Item</button>
-        <button id="manage-content">Inhalte verwalten</button>
-        <ul id="sections-list">
-            <!-- Dynamically populated sections -->
-        </ul>
+    <div id="adminPanel" class="admin-panel">
+        <h1>Admin Dashboard</h1>
+        <p>Willkommen im Admin-Bereich!</p>
+
+        <div id="userManagementBox" style="display: none;">
+            <h2>Benutzerverwaltung</h2>
+            <button id="manageUsersBtn">Benutzer verwalten</button>
+        </div>
+
+        <div>
+            <h2>Passwort ändern</h2>
+            <button id="changePasswordBtn">Passwort ändern</button>
+        </div>
+
+        <div>
+            <h2>Inhalte</h2>
+            <button id="manage-content">Inhalte verwalten</button>
+        </div>
+
+        <button id="logoutBtn">Logout</button>
     </div>
-    <div id="content">
-        <h1>Welcome, Superadmin</h1>
-        <p>Select a section to edit its content.</p>
-    </div>
+
     <div id="content-modal" style="display: none;">
         <textarea id="content-editor" rows="10" cols="50"></textarea>
         <button id="save-content">Speichern</button>
         <button id="close-modal">Schließen</button>
     </div>
+
     <script src="js/admin.js"></script>
 </body>
 </html>

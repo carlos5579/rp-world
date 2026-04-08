@@ -404,3 +404,32 @@ app.post('/register', async (req, res) => {
     res.status(500).send('Error registering user.');
   }
 });
+
+// API-Endpunkt zum Speichern von Inhalten
+app.post('/api/content', (req, res) => {
+  const { title, content } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ error: 'Titel und Inhalt sind erforderlich.' });
+  }
+
+  const filePath = path.join(__dirname, 'data', `${title.replace(/\s+/g, '_')}.html`);
+
+  fs.writeFile(filePath, content, (err) => {
+    if (err) {
+      console.error('Fehler beim Speichern der Datei:', err);
+      return res.status(500).json({ error: 'Fehler beim Speichern der Datei.' });
+    }
+
+    res.json({ message: 'Inhalt erfolgreich gespeichert!' });
+  });
+});
+
+// Statische Dateien bereitstellen
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Server starten
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server läuft auf http://localhost:${PORT}`);
+});

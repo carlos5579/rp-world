@@ -94,6 +94,43 @@ async function deleteUser(adminUsername, targetUsername) {
   }
 }
 
+// Inhalte verwalten Modal öffnen
+const manageContentButton = document.getElementById('manage-content');
+const contentManagementModal = document.getElementById('contentManagementModal');
+const closeContentManagementModal = document.getElementById('closeContentManagementModal');
+const contentManagementForm = document.getElementById('contentManagementForm');
+
+manageContentButton.addEventListener('click', () => {
+  contentManagementModal.style.display = 'block';
+});
+
+closeContentManagementModal.addEventListener('click', () => {
+  contentManagementModal.style.display = 'none';
+});
+
+contentManagementForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const pageTitle = document.getElementById('pageTitle').value;
+  const pageContent = document.getElementById('pageContent').value;
+
+  fetch('/api/content', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ title: pageTitle, content: pageContent }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      alert('Inhalt erfolgreich gespeichert!');
+      contentManagementModal.style.display = 'none';
+    })
+    .catch((error) => {
+      console.error('Fehler beim Speichern des Inhalts:', error);
+    });
+});
+
 // ==================== DOMw Ready ====================
 document.addEventListener('DOMContentLoaded', async function() {
   const currentUser = localStorage.getItem('currentAdminUser');
